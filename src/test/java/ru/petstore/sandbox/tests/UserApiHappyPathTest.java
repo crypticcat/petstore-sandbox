@@ -42,7 +42,7 @@ public class UserApiHappyPathTest extends TestBase {
         String contentType = response.getHeader(CONTENT_TYPE.name);
         String xExpiresAfter = response.getHeader(X_EXPIRES_AFTER.name);
         int xRateLimit = Integer.parseInt(response.getHeader(X_RATE_LIMIT.name));
-        String tokenExpireDate = UtilBase.getExpireDateInString("E MMM dd HH:mm:ss z yyyy",
+        String tokenExpireDate = UtilBase.getExpireDateInString("E MMM dd HH:mm",
                 "UTC", 1);
 
         LOG.info("Performing checks for the response code and headers");
@@ -57,7 +57,7 @@ public class UserApiHappyPathTest extends TestBase {
         softAssert.assertThat(xExpiresAfter)
                 .withFailMessage(String.format("Expected expiration date is: %s, but was %s",
                         tokenExpireDate, xExpiresAfter))
-                .isEqualTo(tokenExpireDate);
+                .contains(tokenExpireDate);
         softAssert.assertThat(xRateLimit)
                 .withFailMessage(String.format("Expected calls per hour: %s, but was %s",
                         allowedCallsPerHour, xRateLimit))
@@ -135,41 +135,48 @@ public class UserApiHappyPathTest extends TestBase {
         LOG.info("Performing checks for the response body");
         UserResponse responsePayload = response.as(UserResponse.class);
         int idFromResp = responsePayload.getId();
-        String usernameFromResp = responsePayload.getUsername();
-        String firstNameFromResp = responsePayload.getFirstName();
-        String lastNameFromResp = responsePayload.getLastName();
-        String emailFromResp = responsePayload.getEmail();
-        String passFromResp = responsePayload.getPassword();
-        String phoneFromResp = responsePayload.getPhone();
-        int userStatusFromResp = responsePayload.getUserStatus();
         softAssert.assertThat(idFromResp)
                 .withFailMessage(String.format("Expected id in response is: %s, but was %s",
                         expectedId, idFromResp))
                 .isEqualTo(expectedId);
+
+        String usernameFromResp = responsePayload.getUsername();
         softAssert.assertThat(usernameFromResp)
                 .withFailMessage("Expected username is: %s, but was: %s",
                         expectedUsername, usernameFromResp)
                 .isEqualTo(expectedUsername);
+
+        String firstNameFromResp = responsePayload.getFirstName();
         softAssert.assertThat(firstNameFromResp)
                 .withFailMessage("Expected first name is: %s, but was: %s",
                         expectedFirstName, firstNameFromResp)
                 .isEqualTo(expectedFirstName);
+
+        String lastNameFromResp = responsePayload.getLastName();
         softAssert.assertThat(lastNameFromResp)
                 .withFailMessage("Expected last name is: %s, but was: %s",
                         expectedLastName, lastNameFromResp)
                 .isEqualTo(expectedLastName);
+
+        String emailFromResp = responsePayload.getEmail();
         softAssert.assertThat(emailFromResp)
                 .withFailMessage("Expected email is: %s, but was: %s",
                         expectedEmail, emailFromResp)
                 .isEqualTo(expectedEmail);
+
+        String passFromResp = responsePayload.getPassword();
         softAssert.assertThat(passFromResp)
                 .withFailMessage("Expected password is: %s, but was: %s",
                         expectedPassword, passFromResp)
                 .isEqualTo(expectedPassword);
+
+        String phoneFromResp = responsePayload.getPhone();
         softAssert.assertThat(phoneFromResp)
                 .withFailMessage("Expected phone number is: %s, but was: %s",
                         expectedPhone, phoneFromResp)
                 .isEqualTo(expectedPhone);
+
+        int userStatusFromResp = responsePayload.getUserStatus();
         softAssert.assertThat(userStatusFromResp)
                 .withFailMessage("Expected user status is: %s, but was: %s",
                         expectedUserStatus, userStatusFromResp)
@@ -179,7 +186,6 @@ public class UserApiHappyPathTest extends TestBase {
     }
 
     @Test
-    @Disabled("Need to finish refactoring")
     @Order(4)
     @Description("Update the newly created user")
     public void updateUser() {
@@ -188,9 +194,9 @@ public class UserApiHappyPathTest extends TestBase {
         String updatedLastName = random.name().lastName();
 
         LOG.debug("Updating the data for created user with username {}", expectedUsername);
-        //TODO - update user data via setters
-        User payload = new User();
-        Response response = UserApi.updateUserByUsername(payload, expectedUsername);
+        userData.setFirstName(updatedFirstName);
+        userData.setLastName(updatedLastName);
+        Response response = UserApi.updateUserByUsername(userData, expectedUsername);
 
         LOG.info("Performing checks for the response code and headers");
         String contentType = response.getHeader(CONTENT_TYPE.name);
@@ -205,13 +211,14 @@ public class UserApiHappyPathTest extends TestBase {
 
         LOG.info("Performing checks for the response body");
         ResponsePayload responsePayload = response.as(ResponsePayload.class);
+        int idFromResponse = Integer.parseInt(responsePayload.getMessage());
         softAssert.assertThat(responsePayload.getCode())
                 .withFailMessage(String.format("Expected status code is: %s, but was %s",
                         OK_200.code, responsePayload.getCode()))
                 .isEqualTo(OK_200.code);
-        softAssert.assertThat(responsePayload.getMessage())
+        softAssert.assertThat(idFromResponse)
                 .withFailMessage("Expected message should contain id of created user: %s, " +
-                        "but contains: %s", expectedId, responsePayload.getMessage())
+                        "but contains: %s", expectedId, idFromResponse)
                 .isEqualTo(expectedId);
 
         softAssert.assertAll();
